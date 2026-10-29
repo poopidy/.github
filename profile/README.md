@@ -6,23 +6,24 @@ Source for a Discord bot developed by a group of friends, along with its support
 
 | Repository | Contents |
 | --- | --- |
-| [discord](https://github.com/poopidy/discord) | Discord bot: gateway listener, reply queue, house rules, daily games, voice, slash commands. |
-| [services](https://github.com/poopidy/services) | Standalone services deployed alongside the bot. |
-| [web](https://github.com/poopidy/web) | Websites, including the daily puzzle leaderboard. |
-| [core](https://github.com/poopidy/core) | Shared Python package: secrets, paths and configuration, SQLite/Postgres database layer. |
-| [infra](https://github.com/poopidy/infra) | Deployment: compose and systemd units, timers, wake receiver, setup scripts. |
+| [backend](https://github.com/poopidy/backend) | Everything that runs on the services host, as one uv workspace: the Discord bot and its `hg` commands (`packages/discord`), shared paths, settings, database layer and migrations (`packages/core`), the trading sleeves ledger (`packages/trading`), standalone services (`packages/services`), and deployment (`ops/`). |
 | [agent](https://github.com/poopidy/agent) | Agent instructions and supporting tooling: wake prompts, routines, skills, handoff documentation. |
+| [web](https://github.com/poopidy/web) | Websites, one app per folder in `apps/`, including the daily puzzle leaderboard (`apps/dle`). |
+
+### Retired
+
+`core`, `discord`, `services` and `infra` were consolidated into **backend** (backend PR #1) and are no longer developed. Make changes in backend instead.
 
 ## Architecture
 
-- **core** is the only shared import. Other repositories communicate through the shared database or over HTTP.
-- **discord** owns bot logic and data; **web** reads leaderboard data from the database.
-- **infra** defines where each component runs, so relocating a component is a configuration change.
-- **agent** contains prompts, documentation, and any tooling that supports them; live data stays in the database.
+- **backend** holds all runtime code. Its packages share the `poopidy.*` namespace and a single virtual environment.
+- **web** does not import backend code; it reads data the bot exports or stores in the shared database.
+- **agent** contains prompts, documentation, and supporting tooling; it calls the bot through `hg`. Live data stays in the database.
+- Deployment (supervisors, systemd units, database, backups) lives in backend's `ops/`.
 
 ## Contributing
 
 - `main` is not protected. Pull requests are optional but preferred.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 - Feature requests are raised in Discord before work begins.
-- Secrets are never committed. Each repository runs a secret scan in CI.
+- Secrets are never committed. Each repository runs a secret scan.
